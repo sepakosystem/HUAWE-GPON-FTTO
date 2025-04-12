@@ -1,0 +1,22 @@
+
+# BASIC CONFIGURATION for SWICH CISCO 3750 12SS
+
+
+hostname Core
+
+ line conso 0
+ pass CISCO
+ login
+ exit
+ 
+ line vty 0 4
+ pass Cisco123
+ login
+ exit
+ 
+ enable secret cisco
+ ip domain nPishro.co
+ ip domain name Pishro.co
+ username admin pass cisco
+
+
