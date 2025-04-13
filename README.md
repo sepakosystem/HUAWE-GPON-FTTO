@@ -1,7 +1,4 @@
 
----![SEPAKOSYSTEM](https://github.com/user-attachments/assets/b762bb86-9efd-444a-82d2-3e2e5b255a6b)
-
-
 # HUAWE-GPON-FTTO Project  
 Comprehensive FTTO network configuration for a 100-unit building using Huawei Access and Cisco devices for Core.
 
