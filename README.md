@@ -84,7 +84,7 @@ Feel free to fork this repository and submit pull requests with improvements. Su
 
 ## Contact  
 - **GitHub**: [sepakosystem](https://github.com/sepakosystem)  
-- **Email**: [your-email@example.com] (replace with your email)  
+- **Email**: [sepakosystem@gmail.com]
 
 ---
 
