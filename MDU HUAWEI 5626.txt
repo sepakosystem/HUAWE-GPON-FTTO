@@ -1,0 +1,161 @@
+# Huawei MA5626 Configuration for HUAWE-GPON-FTTO Project
+# Device: MDU (1 of 41) 
+# Project: FTTO Network (100 Units) 
+# Date: 2021-04-12
+
+### Global Configuration
+
+# Sets system name and resource thresholds
+
+sysname FTTO-MDU-1
+resource threshold mem 85              # Memory threshold at 85%
+
+### Device Configuration
+
+# Defines uplink port type
+
+port port-index 0/0/1 port-type GPON-PORT
+
+### Public Configuration
+
+# Configures SNMP for monitoring
+
+snmp-agent local-engineid 800007DB032841C6167C3101
+
+### VLAN Configuration
+
+# Defines VLANs and assigns to uplink
+
+vlan 100 smart                        # Management
+vlan 200 smart                        # Internet
+vlan 300 smart                        # VoIP
+vlan 400 smart                        # CCTV
+vlan 500 smart                        # Server
+vlan 600 smart                        # IPTV
+vlan 900 smart                        # Internetwork
+port vlan 100 0/0 1                   # Assign VLANs to uplink
+port vlan 200 0/0 1
+port vlan 300 0/0 1
+port vlan 400 0/0 1
+port vlan 500 0/0 1
+port vlan 600 0/0 1
+port vlan 900 0/0 1
+
+### GPON NNI Configuration
+
+# Authenticates GPON uplink
+interface gponnni 0/0/1
+ password "%5L3_.^M^.9I\5<V@WN#JI1!!%"
+ loid "%VL*&O__.3U3;RaK'0`"NPQ!!,DWUN(I=,'UZ_`@1RI<=WQ!!%"
+ checkcode "%L9;7+FT2-[LX3NU/Va@a]Q!!%"
+
+### EMU Configuration
+
+# Configures environmental monitoring units
+
+emu add 0 fan 0 2 RS232 "FAN"
+emu add 1 h831vesc 0 1 RS232 "H831VESC"
+
+### Service-Ports Configuration
+
+# Assigns service ports to Ethernet interfaces (sample for 24 ports)
+service-port 0 vlan 200 eth 0/1/1 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # Internet
+service-port 1 vlan 300 eth 0/1/2 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # VoIP
+service-port 2 vlan 600 eth 0/1/3 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # IPTV
+service-port 3 vlan 400 eth 0/1/4 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # CCTV
+service-port 4 vlan 200 eth 0/1/5 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # Internet
+service-port 5 vlan 300 eth 0/1/6 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # VoIP
+service-port 6 vlan 600 eth 0/1/7 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # IPTV
+service-port 7 vlan 400 eth 0/1/8 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # CCTV
+service-port 8 vlan 200 eth 0/1/9 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6   # Internet
+service-port 9 vlan 300 eth 0/1/10 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6  # VoIP
+service-port 10 vlan 600 eth 0/1/11 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # IPTV
+service-port 11 vlan 400 eth 0/1/12 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # CCTV
+service-port 12 vlan 200 eth 0/1/13 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # Internet
+service-port 13 vlan 300 eth 0/1/14 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # VoIP
+service-port 14 vlan 600 eth 0/1/15 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # IPTV
+service-port 15 vlan 400 eth 0/1/16 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # CCTV
+service-port 16 vlan 200 eth 0/1/17 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # Internet
+service-port 17 vlan 300 eth 0/1/18 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # VoIP
+service-port 18 vlan 600 eth 0/1/19 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # IPTV
+service-port 19 vlan 400 eth 0/1/20 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # CCTV
+service-port 20 vlan 200 eth 0/1/21 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # Internet
+service-port 21 vlan 300 eth 0/1/22 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # VoIP
+service-port 22 vlan 600 eth 0/1/23 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # IPTV
+service-port 23 vlan 400 eth 0/1/24 multi-service user-vlan untagged rx-cttr 6 tx-cttr 6 # CCTV
+
+### BTV Configuration
+
+# Configures multicast for IPTV
+btv
+ igmp user add 0 service-port 2        # IPTV for port 3
+ igmp user add 0 service-port 6        # IPTV for port 7
+ igmp user add 0 service-port 10       # IPTV for port 11
+ igmp user add 0 service-port 14       # IPTV for port 15
+ igmp user add 0 service-port 18       # IPTV for port 19
+ igmp user add 0 service-port 22       # IPTV for port 23
+ multicast-vlan 600
+  igmp version v2                     # IGMP version 2
+  igmp match mode disable             # Disables match mode
+  igmp multicast-vlan member 0        # VLAN membership
+  igmp mode snooping                  # Snooping mode
+  igmp program add ip 239.1.2.1 index 0  # IPTV channels
+  igmp program add ip 239.1.2.2 index 1
+  igmp program add ip 239.1.2.3 index 2
+  igmp program add ip 239.1.2.4 index 3
+  igmp program add ip 239.1.2.5 index 4
+  igmp program add ip 239.1.2.6 index 5
+  igmp program add ip 239.1.2.7 index 6
+  igmp program add ip 239.1.2.8 index 7
+  igmp program add ip 239.1.2.9 index 8
+  igmp program add ip 239.1.2.10 index 9
+  igmp program add ip 239.1.2.11 index 10
+  igmp program add ip 239.1.2.12 index 11
+  igmp program add ip 239.1.2.13 index 12
+  igmp program add ip 239.1.2.14 index 13
+  igmp program add ip 239.1.2.15 index 14
+  igmp program add ip 239.1.2.16 index 15
+  igmp program add ip 239.1.2.17 index 16
+  igmp program add ip 239.1.2.18 index 17
+  igmp program add ip 239.1.2.19 index 18
+  igmp program add ip 239.1.2.20 index 19
+  
+  igmp uplink-port 0/0/1              # Uplink port
+
+### VLANIF Configuration
+
+# Assigns IP addresses to VLAN interfaces
+
+interface vlanif100
+ ip address 10.10.100.18 255.255.255.0 description "MGMT"
+interface vlanif200
+ ip address 10.10.200.18 255.255.255.0 description "INTERNET"
+interface vlanif300
+ ip address 10.10.300.18 255.255.255.0 description "VOIP"
+interface vlanif400
+ ip address 10.10.400.18 255.255.255.0 description "CCTV"
+interface vlanif500
+ ip address 10.10.500.18 255.255.255.0 description "SERVER"
+interface vlanif600
+ ip address 10.10.600.18 255.255.255.0 description "IPTV"
+interface vlanif900
+ ip address 10.10.900.18 255.255.255.0 description "INTERNETWORK"
+
+### Management Interface
+
+# Configures out-of-band management
+interface meth0
+ ip address 10.11.104.2 255.255.255.0
+
+### Null Interface
+interface null0
+
+### AAA Configuration
+# Sets up authentication, authorization, and accounting
+aaa
+ authentication-scheme "default"
+ authorization-scheme "default"
+ accounting-scheme "default"
+ domain "default"
+
+return

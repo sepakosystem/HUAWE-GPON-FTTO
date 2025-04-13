@@ -1,0 +1,121 @@
+# Cisco 3750-12SS Configuration for HUAWE-GPON-FTTO Project
+
+# Devices: Core Switches 1-4 
+# Project: FTTO Network (100 Units) 
+# Date: 2021-04-12
+
+### Switch 1
+
+### System Configuration
+
+# Sets up switch identity and basic settings
+hostname FTTO-SW1
+no ip domain-lookup                  # Disables DNS lookup
+ip domain-name ftto.local            # Local domain
+enable secret 5 $1$Xz9p$Qw7kL3m9vN2rT5yU8iP0/  # Enable password
+
+### User Authentication
+
+# Configures admin access
+
+username admin privilege 15 secret 5 $1$Zk1m$Jy4pR6n8wX0tQ2eH9uM3/  # Admin user
+line console 0
+ login local
+ exit
+line vty 0 15
+ login local
+ transport input ssh                # SSH only
+ exit
+
+### VLAN Configuration
+
+# Defines VLANs for traffic separation
+vlan 100
+ name MANAGEMENT
+vlan 200
+ name INTERNET
+vlan 300
+ name VOIP
+vlan 400
+ name CCTV
+vlan 500
+ name SERVER
+vlan 600
+ name IPTV
+vlan 900
+ name INTERNETWORK
+
+### Management Interface
+
+# Assigns IP for switch management
+interface vlan 100
+ ip address 192.168.0.2 255.255.255.0
+ description MANAGEMENT
+ no shutdown
+
+### Spanning Tree Configuration
+
+# Prevents loops with Rapid Per-VLAN Spanning Tree
+spanning-tree mode rapid-pvst
+spanning-tree portfast default
+spanning-tree extend system-id
+
+### Port Configuration
+
+# Configures ports for uplink, servers, NVR, and access
+interface GigabitEthernet1/0/1
+ description TO-OLT-HUAWEI-0/2/0
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 100,200,300,400,500,600,900  # Allowed VLANs
+ no ip address
+ no mdix auto
+ spanning-tree portfast disable
+ no shutdown
+ 
+interface GigabitEthernet1/0/2
+ description TO-SERVER1
+ switchport access vlan 500
+ switchport mode access
+ no ip address
+ no mdix auto
+ spanning-tree portfast
+ no shutdown
+ 
+interface GigabitEthernet1/0/3
+ description TO-SERVER2
+ switchport access vlan 500
+ switchport mode access
+ no ip address
+ no mdix auto
+ spanning-tree portfast
+ no shutdown
+ 
+interface GigabitEthernet1/0/4
+ description TO-NVR1
+ switchport access vlan 400
+ switchport mode access
+ no ip address
+ no mdix auto
+ spanning-tree portfast
+ no shutdown
+ 
+interface range GigabitEthernet1/0/5 - 12
+ description OFFICE-ACCESS
+ switchport mode access
+ switchport access vlan 200
+ no ip address
+ no mdix auto
+ spanning-tree portfast
+ no shutdown
+
+### SSH Configuration
+# Enables secure remote access
+crypto key generate rsa
+ modulus 2048
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+
+end
+write memory

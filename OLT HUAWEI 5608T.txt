@@ -1,0 +1,189 @@
+# Huawei MA5608T Configuration for HUAWE-GPON-FTTO Project
+
+# Device: OLT Huawei MA5608T
+
+# Project: FTTO Network (100 Units) 
+
+# Date: 2021-04-12
+
+
+
+### System Configuration
+
+# Sets up device name, GPON mode, and VoIP parameters
+sysname FTTO-OLT
+xpon mode switch-to profile-mode       # Enables profile mode for GPON
+voice-spec set vag-num 8               # 8 VoIP users per port
+voice-spec set sip-account-num 2048    # Supports 2048 SIP accounts
+protocol support sip                   # Enables SIP for VoIP
+router mode basic                      # Basic routing mode
+
+### Global Configuration
+
+# Configures admin access and traffic profiles for QoS
+terminal user name admin password *O$1a$Zx8!@a0h8<$_5C+UTd%0  # Admin credentials
+traffic table ip index 5 name "VOIP" cir 5120 cbs 67536 pir 10240 pbs 135072 color-mode color-blind priority 0 priority-policy tag-in-package  # High-priority VoIP traffic
+traffic table ip index 6 name "GENERAL" cir 102400 cbs 512000 pir 1024000 pbs 10240000 color-mode color-blind priority 1 priority-policy local-setting  # General internet traffic
+traffic table ip index 7 name "CCTV" cir 20480 cbs 264144 pir 40960 pbs 657360 color-mode color-blind priority 4 priority-policy local-setting  # CCTV traffic
+traffic table ip index 8 name "IPTV" cir 20480 cbs 264144 pir 40960 pbs 657360 color-mode color-blind priority 5 priority-policy local-setting  # IPTV traffic
+
+### DBA Profiles
+
+# Defines bandwidth allocation profiles for ONTs
+
+dba-profile add profile-id 1 profile-name "FTTO-General" type4 max 1024000  # Internet: up to 1Gbps
+dba-profile add profile-id 2 profile-name "FTTO-VoIP" type1 fix 4096       # VoIP: fixed 4Mbps
+dba-profile add profile-id 3 profile-name "FTTO-CCTV" type3 assure 69952 max 204800  # CCTV: 70Mbps assured, 200Mbps max
+dba-profile add profile-id 4 profile-name "FTTO-IPTV" type2 assure 102400  # IPTV: 100Mbps assured
+
+### ONT Service Profiles
+
+# Configures service profiles for residential units and CCTV
+
+ont-srvprofile gpon profile-id 1 profile-name "FTTO-Unit"
+ ont-port pots 2 eth 4                 # 2 POTS, 4 Ethernet ports
+ multicast mode igmp-snooping          # IGMP snooping for IPTV
+ port vlan eth 1 translation 200 user-vlan 200  # ETH1: Internet
+ port vlan eth 2 translation 300 user-vlan 300  # ETH2: VoIP
+ port vlan eth 3 translation 600 user-vlan 600  # ETH3: IPTV
+ commit
+ 
+ont-srvprofile gpon profile-id 2 profile-name "FTTO-CCTV"
+ ont-port eth adaptive                 # Adaptive Ethernet for CCTV
+ commit
+
+### ONT Line Profiles
+
+# Maps GEM ports to VLANs for traffic separation
+
+ont-lineprofile gpon profile-id 1 profile-name "FTTO-Unit"
+ tcont 1 dba-profile-id 1              # Internet bandwidth
+ tcont 2 dba-profile-id 2              # VoIP bandwidth
+ tcont 3 dba-profile-id 4              # IPTV bandwidth
+ gem add 1 eth tcont 1                 # GEM for Internet
+ gem add 2 eth tcont 2                 # GEM for VoIP
+ gem add 3 eth tcont 3                 # GEM for IPTV
+ gem mapping 1 0 vlan 200              # Maps to Internet VLAN
+ gem mapping 2 0 vlan 300              # Maps to VoIP VLAN
+ gem mapping 3 0 vlan 600              # Maps to IPTV VLAN
+ commit
+ 
+ont-lineprofile gpon profile-id 2 profile-name "FTTO-CCTV"
+ tcont 1 dba-profile-id 3              # CCTV bandwidth
+ gem add 1 eth tcont 1                 # GEM for CCTV
+ gem mapping 1 0 vlan 400              # Maps to CCTV VLAN
+ commit
+
+### Device Configuration
+
+# Adds hardware boards to the OLT
+board add 0/0 H805GPFD                # GPON board for ports 0-15
+board add 0/1 H805GPFD                # GPON board for ports 16-31
+board add 0/2 H801MCUD1               # Control board for switch uplink
+board add 0/3 H801MCUD1               # Control board for ISP uplink
+
+### VLAN Configuration
+
+# Defines VLANs and assigns to uplink ports
+
+vlan 100 smart                        # Management
+vlan 200 smart                        # Internet
+vlan 300 smart                        # VoIP
+vlan 400 smart                        # CCTV
+vlan 500 smart                        # Server
+vlan 600 smart                        # IPTV
+vlan 900 smart                        # Internetwork
+
+vlan priority 300 0                   # High priority for VoIP
+vlan priority 400 4                   # Medium priority for CCTV
+vlan priority 600 5                   # Priority for IPTV
+
+port vlan 100 0/2 0                   # VLANs to switch uplink port
+port vlan 100 0/3 0                   # VLANs to ISP uplink port
+
+
+### MCU Configuration
+
+# Configures MCU interfaces for uplinks
+
+interface mcu 0/2
+
+ speed 0 1000                         # 1Gbps speed
+ native-vlan 0 vlan 100               # Management VLAN
+ description TO-SWITCHES
+interface mcu 0/3
+ speed 0 1000                         # 1Gbps speed
+ native-vlan 0 vlan 900               # Internetwork VLAN
+ description TO-ISP
+
+### GPON Configuration
+
+# Enables auto-discovery and adds sample ONTs
+
+interface gpon 0/0
+ port 0 to 15 ont-auto-find enable    # Auto-find for ports 0-15
+ 
+interface gpon 0/1
+
+ port 0 to 15 ont-auto-find enable    # Auto-find for ports 16-31
+ont add 0/0 0 sn-auth "485754437E749B58" omci ont-lineprofile-id 1 ont-srvprofile-id 1 desc "Unit-1"  # Unit 1
+ont add 0/0 1 sn-auth "4857544388D5B89F" omci ont-lineprofile-id 1 ont-srvprofile-id 1 desc "Unit-2"  # Unit 2
+ont add 0/0 2 sn-auth "485754439A6C7D12" omci ont-lineprofile-id 2 ont-srvprofile-id 2 desc "CCTV-1"  # CCTV 1
+ont add 0/0 3 sn-auth "48575443A1B2C456" omci ont-lineprofile-id 1 ont-srvprofile-id 1 desc "Unit-3"  # Unit 3
+# Add remaining ONTs (up to 100) with actual serial numbers
+
+### Service Ports
+
+# Defines service ports for ONTs (sample for 4 ONTs)
+
+service-port 0 vlan 200 gpon 0/0/0 ont 0 gemport 1 multi-service user-vlan 200 tag-transform translate inbound traffic-table index 6 outbound traffic-table index 6  # Unit 1: Internet
+service-port 1 vlan 300 gpon 0/0/0 ont 0 gemport 2 multi-service user-vlan 300 tag-transform translate inbound traffic-table index 5 outbound traffic-table index 5  # Unit 1: VoIP
+service-port 2 vlan 600 gpon 0/0/0 ont 0 gemport 3 multi-service user-vlan 600 tag-transform translate inbound traffic-table index 8 outbound traffic-table index 8  # Unit 1: IPTV
+service-port 3 vlan 200 gpon 0/0/1 ont 1 gemport 1 multi-service user-vlan 200 tag-transform translate inbound traffic-table index 6 outbound traffic-table index 6  # Unit 2: Internet
+service-port 4 vlan 300 gpon 0/0/1 ont 1 gemport 2 multi-service user-vlan 300 tag-transform translate inbound traffic-table index 5 outbound traffic-table index 5  # Unit 2: VoIP
+service-port 5 vlan 600 gpon 0/0/1 ont 1 gemport 3 multi-service user-vlan 600 tag-transform translate inbound traffic-table index 8 outbound traffic-table index 8  # Unit 2: IPTV
+service-port 6 vlan 400 gpon 0/0/2 ont 2 gemport 1 multi-service user-vlan 400 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7  # CCTV 1
+service-port 7 vlan 200 gpon 0/0/3 ont 3 gemport 1 multi-service user-vlan 200 tag-transform translate inbound traffic-table index 6 outbound traffic-table index 6  # Unit 3: Internet
+service-port 8 vlan 300 gpon 0/0/3 ont 3 gemport 2 multi-service user-vlan 300 tag-transform translate inbound traffic-table index 5 outbound traffic-table index 5  # Unit 3: VoIP
+service-port 9 vlan 600 gpon 0/0/3 ont 3 gemport 3 multi-service user-vlan 600 tag-transform translate inbound traffic-table index 8 outbound traffic-table index 8  # Unit 3: IPTV
+# Add service ports for remaining ONTs (~300 total for 100 ONTs)
+
+### BTV Configuration
+
+# Configures multicast for IPTV
+btv
+ igmp proxy router ip 10.10.600.3      # IGMP router IP
+ igmp user add service-port 2 no-auth  # IPTV for Unit 1
+ igmp user add service-port 5 no-auth  # IPTV for Unit 2
+ igmp user add service-port 9 no-auth  # IPTV for Unit 3
+ multicast-vlan 600
+  igmp version v2                     # IGMP version 2
+  igmp mode snooping                  # Snooping for efficiency
+  igmp program add batch start-index 0 ip 239.1.2.1 to-ip 239.1.2.20  # IPTV channels
+  igmp uplink-port 0/2/0              # Uplink port
+
+### VLAN Interfaces
+
+# Assigns IP addresses to VLAN interfaces
+
+interface vlanif100
+ ip address 10.10.100.254 255.255.255.0 description "MGMT"
+interface vlanif200
+ ip address 10.10.200.254 255.255.255.0 description "INTERNET"
+interface vlanif300
+ ip address 10.10.300.254 255.255.255.0 description "VOIP"
+interface vlanif400
+ ip address 10.10.400.254 255.255.255.0 description "CCTV"
+interface vlanif500
+ ip address 10.10.500.254 255.255.255.0 description "SERVER"
+interface vlanif600
+ ip address 10.10.600.254 255.255.255.0 description "IPTV"
+ igmp enable                          # Enables IGMP for IPTV
+interface vlanif900
+ ip address 10.10.900.254 255.255.255.0 description "INTERNETWORK"
+
+### Routing
+# Sets default route to ISP
+ip route-static 0.0.0.0 0.0.0.0 10.10.900.1 description "TO-ISP"
+
+return
